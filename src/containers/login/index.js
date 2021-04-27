@@ -1,23 +1,26 @@
 import React, { useEffect, useState } from "react";
 import OpenLogin from "@toruslabs/openlogin";
-import { Avalanche } from "avalanche";
+import sodium from "libsodium-wrappers";
+import { hex2buf } from "@taquito/utils";
 import AccountInfo from "../../components/AccountInfo";
 import "./style.scss";
 
-const myNetworkID = 5;
-const avalanche = new Avalanche(
-  "api.avax-test.network",
-  443,
-  "https",
-  myNetworkID
-);
-
+const bs58check = require("bs58check");
+const secp256k1 = require("secp256k1");
 const color = "#2c7df7";
 
 function Login() {
   const [loading, setLoading] = useState(false);
   const [openlogin, setSdk] = useState(undefined);
   const [walletInfo, setUserAccountInfo] = useState(null);
+
+  const publicKeyHash = async (key) => {
+    await sodium.ready;
+    return b58cencode(
+      sodium.crypto_generichash(20, key),
+      new Uint8Array([6, 161, 161])
+    );
+  };
 
   useEffect(() => {
     async function initializeOpenlogin() {
@@ -27,7 +30,7 @@ function Login() {
       });
       await sdkInstance.init();
       if (sdkInstance.privKey) {
-        await importUserAccount(sdkInstance.privKey);
+        await init(hex2buf(sdkInstance?.privKey));
       }
       setSdk(sdkInstance);
       setLoading(false);
@@ -36,30 +39,44 @@ function Login() {
     initializeOpenlogin();
   }, []);
 
-  async function importUserAccount(privateKey) {
-    const xchain = avalanche.XChain(); //returns a reference to the X-Chain used by AvalancheJS
-    const myKeychain = xchain.keyChain();
-    const importedAccount = myKeychain.importKey(
-      Buffer.from(privateKey, "hex")
-    ); // returns an instance of the KeyPair class
-    let address = importedAccount.getAddressString();
-    const myAddresses = xchain.keyChain().getAddressStrings();
-    const u = await xchain.getUTXOs(myAddresses);
-    const utxos = u.utxos;
-    const assetid = "8pfG5CTyL5KBVaKrEnCvNJR95dUWAKc1hrffcVxfgi8qGhqjm"; // random cb58 string
-    const mybalance = utxos.getBalance(myAddresses, assetid);
-    console.log(mybalance, address);
-    setUserAccountInfo({ balance: mybalance.toNumber(), address });
+  const fetchBalance = async (address) => {
+    const req = await fetch(
+      `https://api.florencenet.tzkt.io/v1/accounts/${address}`
+    );
+    const data = await req.json();
+    return data.balance / 1e6 ?? 0;
+  };
+
+  const init = async (key) => {
+    const publicKey = secp256k1.publicKeyCreate(key);
+    const address = await publicKeyHash(publicKey);
+    const balance = await fetchBalance(address);
+    setUserAccountInfo({
+      address,
+      balance,
+    });
+  };
+
+  function b58cencode(value, prefix) {
+    const payloadAr =
+      typeof value === "string"
+        ? Uint8Array.from(Buffer.from(value, "hex"))
+        : value;
+
+    const n = new Uint8Array(prefix.length + payloadAr.length);
+    n.set(prefix);
+    n.set(payloadAr, prefix.length);
+
+    return bs58check.encode(Buffer.from(n.buffer));
   }
 
   async function handleLogin() {
     setLoading(true);
     try {
-      const privKey = await openlogin.login({
+      await openlogin.login({
         loginProvider: "google",
         redirectUrl: `${window.origin}`,
       });
-      await importUserAccount(privKey);
       setLoading(false);
     } catch (error) {
       console.log("error", error);
