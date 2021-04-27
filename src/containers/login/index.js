@@ -48,7 +48,10 @@ function Login() {
       `https://api.florencenet.tzkt.io/v1/accounts/${address}`
     );
     const data = await req.json();
-    return data.balance / 1e6 ?? 0;
+    console.log(data);
+    console.log(data.balance / 1e6 ?? 0);
+    let balance = data.balance ?? 0;
+    return balance / 1e6;
   };
 
   const init = async (key) => {
