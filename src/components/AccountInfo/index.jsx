@@ -7,7 +7,7 @@ function accountInfo({handleLogout, privKey, walletInfo}) {
     <div>
         <PageHeader
             className="site-page-header"
-            title="Openlogin x Avalanche"
+            title="Openlogin"
             extra={[
                 <Button key="1" type="primary" onClick={handleLogout}>
                 Logout

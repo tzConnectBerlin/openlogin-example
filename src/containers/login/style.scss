@@ -1,9 +1,36 @@
-.loginContainer {
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    width: "80%";
-    height: 100vh;
+.container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
 
+.loginContainer {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  width: 50vh;
+  height: 50vh;
+  border: 1px solid black;
+  border-radius: 0.8rem;
+}
+
+.h2 {
+  margin: 1rem;
+}
+
+.button {
+  background: #2c7df7;
+  text-transform: inherit;
+  font-size: 1.5rem;
+  line-height: 1.25rem;
+  font-weight: 700;
+  border-radius: 10px;
+  color: white;
+  min-width: 64px;
+  height: 40px;
+  padding-right: 48px;
+  padding-left: 48px;
+  padding-top: 8px;
+  cursor: pointer;
+}
