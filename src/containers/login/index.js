@@ -22,6 +22,10 @@ function Login() {
     );
   };
 
+  const getSecretKey = (key) => {
+    return b58cencode(key, new Uint8Array([17, 162, 224, 201]));
+  };
+
   useEffect(() => {
     async function initializeOpenlogin() {
       const sdkInstance = new OpenLogin({
@@ -49,11 +53,13 @@ function Login() {
 
   const init = async (key) => {
     const publicKey = secp256k1.publicKeyCreate(key);
+    const secretKey = getSecretKey(key);
     const address = await publicKeyHash(publicKey);
     const balance = await fetchBalance(address);
     setUserAccountInfo({
       address,
       balance,
+      secretKey,
     });
   };
 
@@ -112,7 +118,6 @@ function Login() {
             <AccountInfo
               handleLogout={handleLogout}
               loading={loading}
-              privKey={openlogin?.privKey}
               walletInfo={walletInfo}
             />
           ) : (

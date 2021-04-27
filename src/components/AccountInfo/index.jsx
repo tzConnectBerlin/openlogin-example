@@ -2,7 +2,7 @@ import React from "react";
 import { PageHeader, Button } from "antd";
 import "./style.scss";
 
-function accountInfo({ handleLogout, privKey, walletInfo }) {
+function accountInfo({ handleLogout, walletInfo }) {
   return (
     <div>
       <PageHeader
@@ -32,7 +32,7 @@ function accountInfo({ handleLogout, privKey, walletInfo }) {
             Tez Balance: <i>{walletInfo?.balance}</i>
           </div>
           <div style={{ margin: 20 }}>
-            Private key: <i>{privKey}</i>
+            Private key: <i>{walletInfo?.secretKey}</i>
           </div>
         </div>
       </div>
