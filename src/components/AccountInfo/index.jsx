@@ -10,17 +10,20 @@ function AccountInfo({ handleLogout, walletInfo }) {
   const [amount, setAmount] = useState("");
 
   const Tezos = new TezosToolkit("https://florencenet.smartpy.io/");
+
+  const sKey = walletInfo.secretKey;
   Tezos.setProvider({
-    signer: new InMemorySigner(walletInfo?.secretKey),
+    signer: new InMemorySigner(sKey),
   });
+
+  importKey(Tezos, sKey).catch((e) => console.error(e));
 
   const addr = walletInfo.address;
   const handleTransfer = async (addr) => {
     setLoading(true);
     try {
       const req = await Tezos.contract.transfer({ to: addr, amount: amount });
-      console.log(req);
-      await req.confirmation(1);
+      //await req.confirmation(1);
 
       setTransfer(req);
       setAmount("");
