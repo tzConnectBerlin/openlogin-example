@@ -83,7 +83,7 @@ function AccountInfo({ handleLogout, walletInfo }) {
               <Input
                 style={{ marginRight: 10 }}
                 type="text"
-                placeholder="Address"
+                placeholder="Recipient address"
                 value={recipient}
                 onChange={(e) => setRecipient(e.target.value)}
               />
