@@ -7,13 +7,13 @@ import "./style.scss";
 function AccountInfo({ handleLogout, walletInfo }) {
   const [transfer, setTransfer] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [amount, setAmount] = useState("");
 
   const Tezos = new TezosToolkit("https://florencenet.smartpy.io/");
   Tezos.setProvider({
     signer: new InMemorySigner(walletInfo?.secretKey),
   });
 
-  const amount = 2;
   const addr = walletInfo.address;
   const handleTransfer = async (addr) => {
     setLoading(true);
@@ -23,6 +23,7 @@ function AccountInfo({ handleLogout, walletInfo }) {
       await req.confirmation(1);
 
       setTransfer(req);
+      setAmount("");
     } catch (error) {
       console.log(error);
     }
@@ -64,9 +65,18 @@ function AccountInfo({ handleLogout, walletInfo }) {
               Transfering {amount} ꜩ to {addr}...
             </div>
           ) : (
-            <Button key="1" type="primary" onClick={handleTransfer}>
-              Request
-            </Button>
+            <div>
+              <input
+                style={{ marginRight: 10 }}
+                type="number"
+                placeholder="Amount"
+                value={amount}
+                onChange={(e) => setAmount(e.target.value)}
+              />
+              <Button key="1" type="primary" onClick={handleTransfer}>
+                Request / Send
+              </Button>
+            </div>
           )}
 
           {/* <div style={{ margin: 20 }}>
