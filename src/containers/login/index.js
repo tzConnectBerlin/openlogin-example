@@ -1,12 +1,11 @@
 import React, { useEffect, useState } from "react";
+import secp256k1 from "secp256k1";
 import OpenLogin from "@toruslabs/openlogin";
 import sodium from "libsodium-wrappers";
-import { hex2buf } from "@taquito/utils";
+import { hex2buf, b58cencode } from "@taquito/utils";
 import AccountInfo from "../../components/AccountInfo";
 import "./style.scss";
 
-const bs58check = require("bs58check");
-const secp256k1 = require("secp256k1");
 const color = "#2c7df7";
 
 function Login() {
@@ -48,8 +47,6 @@ function Login() {
       `https://api.florencenet.tzkt.io/v1/accounts/${address}`
     );
     const data = await req.json();
-    console.log(data);
-    console.log(data.balance / 1e6 ?? 0);
     let balance = data.balance ?? 0;
     return balance / 1e6;
   };
@@ -65,19 +62,6 @@ function Login() {
       secretKey,
     });
   };
-
-  function b58cencode(value, prefix) {
-    const payloadAr =
-      typeof value === "string"
-        ? Uint8Array.from(Buffer.from(value, "hex"))
-        : value;
-
-    const n = new Uint8Array(prefix.length + payloadAr.length);
-    n.set(prefix);
-    n.set(payloadAr, prefix.length);
-
-    return bs58check.encode(Buffer.from(n.buffer));
-  }
 
   async function handleLogin() {
     setLoading(true);

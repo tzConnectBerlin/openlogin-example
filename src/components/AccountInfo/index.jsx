@@ -1,31 +1,39 @@
-import React, { useState } from "react";
-import { PageHeader, Button } from "antd";
+import React, { useEffect, useState } from "react";
+import { PageHeader, Button, Input } from "antd";
 import { TezosToolkit } from "@taquito/taquito";
-import { InMemorySigner, importKey } from "@taquito/signer";
+import { InMemorySigner } from "@taquito/signer";
 import "./style.scss";
+
+const Tezos = new TezosToolkit("https://florencenet.smartpy.io/");
 
 function AccountInfo({ handleLogout, walletInfo }) {
   const [transfer, setTransfer] = useState(null);
   const [loading, setLoading] = useState(false);
   const [amount, setAmount] = useState("");
+  const [recipient, setRecipient] = useState("");
 
-  const Tezos = new TezosToolkit("https://florencenet.smartpy.io/");
-  Tezos.setProvider({
-    signer: new InMemorySigner(walletInfo?.secretKey),
-  });
+  useEffect(() => {
+    if (walletInfo.secretKey) {
+      Tezos.setProvider({
+        signer: new InMemorySigner(walletInfo.secretKey),
+      });
+    }
+  }, [walletInfo.secretKey]);
 
-  const addr = walletInfo.address;
-  const handleTransfer = async (addr) => {
+  const handleTransfer = async () => {
     setLoading(true);
     try {
-      const req = await Tezos.contract.transfer({ to: addr, amount: amount });
-      console.log(req);
-      await req.confirmation(1);
-
-      setTransfer(req);
-      setAmount("");
+      const req = await Tezos.contract.transfer({
+        to: recipient,
+        amount: amount,
+      });
+      setTransfer(req.hash);
     } catch (error) {
       console.log(error);
+    } finally {
+      setAmount("");
+      setRecipient("");
+      setLoading(false);
     }
   };
 
@@ -52,36 +60,62 @@ function AccountInfo({ handleLogout, walletInfo }) {
           }}
         >
           <div style={{ margin: 20 }}>
-            Wallet address: <i>{walletInfo?.address}</i>
+            Wallet address:{" "}
+            <i>
+              <a
+                target="_blank"
+                rel="noopener noreferrer"
+                href={`https://florence.tzstats.com/${walletInfo?.address}`}
+              >
+                {walletInfo?.address}
+              </a>
+            </i>
           </div>
           <div style={{ margin: 20 }}>
-            Tez Balance: <i>{walletInfo?.balance}</i>
+            Balance: <i>{`${walletInfo?.balance} ꜩ`}</i>
           </div>
-          {/* <div style={{ margin: 20 }}>
-            Private key: <i>{walletInfo?.secretKey}</i>
-          </div> */}
           {loading ? (
             <div style={{ margin: 20 }}>
-              Transfering {amount} ꜩ to {addr}...
+              Transferring {amount} ꜩ to {recipient}...
             </div>
           ) : (
             <div>
-              <input
+              <Input
                 style={{ marginRight: 10 }}
+                type="text"
+                placeholder="Address"
+                value={recipient}
+                onChange={(e) => setRecipient(e.target.value)}
+              />
+              <Input
+                style={{ marginRight: 10, marginTop: 10, width: "100%" }}
                 type="number"
                 placeholder="Amount"
                 value={amount}
                 onChange={(e) => setAmount(e.target.value)}
               />
-              <Button key="1" type="primary" onClick={handleTransfer}>
-                Request / Send
+              <Button
+                style={{ marginRight: 10, marginTop: 10, width: "100%" }}
+                type="primary"
+                onClick={handleTransfer}
+              >
+                Send
               </Button>
             </div>
           )}
 
-          {/* <div style={{ margin: 20 }}>
-            Operation injected: https://edo.tzstats.com/{transfer}
-          </div> */}
+          {transfer && (
+            <div style={{ margin: 20 }}>
+              Last operation injected:
+              <a
+                target="_blank"
+                rel="noopener noreferrer"
+                href={`https://florence.tzstats.com/${transfer}`}
+              >
+                {transfer}
+              </a>
+            </div>
+          )}
         </div>
       </div>
     </div>
